@@ -8,27 +8,11 @@ exports.createBook = async (req, res, next) => {
 		const bookObject = JSON.parse(req.body.book)
 		delete bookObject._userId
 
-		// Redimensionner l'image avec Sharp
-		const imageBuffer = await sharp(req.file.buffer)
-			.resize({ width: 500 })
-			.toFormat('jpg')
-			.jpeg({ quality: 80 })
-			.toBuffer()
-
-		// Créer un nom de fichier unique pour l'image
-		const imageName = `${req.auth.userId}-${Date.now()}.jpg`
-
-		// Enregistrer l'image redimensionnée sur le disque
-		fs.writeFileSync(`images/${imageName}`, imageBuffer)
-
-		// Créer l'URL de l'image
-		const imageUrl = `${req.protocol}://${req.get('host')}/images/${imageName}`
-
-		// Créer et sauvegarder le livre avec l'URL de l'image
+		// Utiliser l'URL de l'image fournie par le middleware
 		const book = new Book({
 			...bookObject,
 			userId: req.auth.userId,
-			imageUrl: imageUrl
+			imageUrl: req.imageUrl
 		})
 
 		await book.save()
@@ -77,7 +61,6 @@ exports.ratingBook = async (req, res, next) => {
 exports.majBook = async (req, res, next) => {
 	try {
 		const bookObject = req.file ? { ...JSON.parse(req.body.book) } : { ...req.body }
-
 		delete bookObject.userId
 
 		const book = await Book.findOne({ _id: req.params.id })
@@ -98,23 +81,8 @@ exports.majBook = async (req, res, next) => {
 				}
 			})
 
-			// Redimensionnement de la nouvelle image avec Sharp
-			const extension = req.file.mimetype.split('/')[1]
-			const name = req.file.originalname.split(' ').join('_').replace(`.${extension}`, '')
-			const filename = `${name}_${Date.now()}.jpg` // Conversion en JPG
-			const filePath = path.join('images', filename)
-
-			await sharp(req.file.buffer)
-				.resize(800, 800, {
-					fit: sharp.fit.inside,
-					withoutEnlargement: true
-				})
-				.toFormat('jpeg')
-				.jpeg({ quality: 80 })
-				.toFile(filePath)
-
 			// Mettre à jour le chemin de l'image dans bookObject
-			bookObject.imageUrl = `${req.protocol}://${req.get('host')}/images/${filename}`
+			bookObject.imageUrl = req.imageUrl
 		}
 
 		await Book.updateOne({ _id: req.params.id }, { ...bookObject, _id: req.params.id })

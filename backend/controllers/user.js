@@ -1,6 +1,9 @@
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const User = require('../models/User')
+const dotenv = require('dotenv')
+
+dotenv.config()
 
 exports.signup = (req, res, next) => {
 	bcrypt
@@ -36,17 +39,14 @@ exports.login = (req, res, next) => {
 					.then((valid) => {
 						if (!valid) {
 							res.status(401).json({
-								message:
-									'Mot de passe ou identifiant incorrecte'
+								message: 'Mot de passe ou identifiant incorrecte'
 							})
 						} else {
 							res.status(200).json({
 								userId: user._id,
-								token: jwt.sign(
-									{ userId: user._id },
-									'RANDOM_TOKEN_SECRET',
-									{ expiresIn: '24h' }
-								)
+								token: jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+									expiresIn: '24h'
+								})
 							})
 						}
 					})

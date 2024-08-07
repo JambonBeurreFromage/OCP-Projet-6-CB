@@ -3,6 +3,7 @@ const path = require('path')
 const mongoose = require('mongoose')
 const cors = require('cors')
 const dotenv = require('dotenv')
+const helmet = require('helmet')
 
 // Charger les variables d'environnement depuis le fichier .env
 dotenv.config()
@@ -25,7 +26,15 @@ const app = express()
 // Permet la communiation entre le serveur et le front ne partagant pas la même origine
 app.use(
 	cors({
-		origin: 'http://localhost:3000'
+		origin: 'http://localhost:3000',
+		credentials: true
+	})
+)
+
+// Utiliser Helmet pour sécuriser les en-têtes HTTP
+app.use(
+	helmet({
+		crossOriginResourcePolicy: { policy: 'cross-origin' }
 	})
 )
 
