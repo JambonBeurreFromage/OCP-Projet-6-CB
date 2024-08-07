@@ -1,0 +1,9 @@
+# Ignorer tous les fichiers sauf HTML, JS, JSX et SCSS
+**/*.json
+**/*.eslintrc
+**/*.md
+**/*.png
+**/*.jpg
+node_modules
+dist
+build
